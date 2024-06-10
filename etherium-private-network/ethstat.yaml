@@ -60,14 +60,16 @@ spec:
         image: ethereumex/eth-stats-dashboard:latest
         imagePullPolicy: IfNotPresent
         env:
+        - name: PORT
+          value: "3000"
         - name: WS_SECRET
           valueFrom:
             secretKeyRef:
               name: eth-ethstats
               key: WS_SECRET
-        command: ["/bin/sh", "-c"]
-        args:
-        - WS_SECRET=$(WS_SECRET) npm start
+        #command: ["/bin/sh", "-c"]
+        #args:
+        #- WS_SECRET=$(WS_SECRET) npm start
         ports:
         - name: http
           containerPort: 3000
