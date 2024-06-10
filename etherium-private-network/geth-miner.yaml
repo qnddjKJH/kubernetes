@@ -74,7 +74,8 @@ spec:
           limits:
             cpu: ".5"
             memory: 500Mi
-        command:
+        command: ["/bin/sh"]
+        args:
         - "-c"
         - "geth --bootnodes=`cat /root/.ethereum/bootnodes` --mine --etherbase=0 --networkid=${NETWORK_ID} --ethstats=${HOSTNAME}:${ETHSTATS_SECRET}@${ETHSTATS_SVC} --verbosity=4"
         env:
