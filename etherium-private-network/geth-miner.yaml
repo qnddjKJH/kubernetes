@@ -77,7 +77,9 @@ spec:
         command: ["/bin/sh"]
         args:
         - "-c"
-        - "geth --bootnodes=`cat /root/.ethereum/bootnodes` --mine --networkid=${NETWORK_ID} --ethstats=${HOSTNAME}:${ETHSTATS_SECRET}@${ETHSTATS_SVC} --verbosity=4"
+        - |
+          ETHERBASE=$(geth account list | grep 'Account #0:' | awk '{print $3}' | tr -d '{}') &&
+          geth --bootnodes=`cat /root/.ethereum/bootnodes` --miner.etherbase '${ETHERBASE}' --mine --networkid=${NETWORK_ID} --ethstats=${HOSTNAME}:${ETHSTATS_SECRET}@${ETHSTATS_SVC} --verbosity=4
         env:
         - name: ETHSTATS_SVC
           value: eth-ethstats.dcp
