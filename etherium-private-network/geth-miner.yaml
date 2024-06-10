@@ -77,7 +77,7 @@ spec:
         command: ["/bin/sh"]
         args:
         - "-c"
-        - "geth --bootnodes=`cat /root/.ethereum/bootnodes` --mine --etherbase=0 --networkid=${NETWORK_ID} --ethstats=${HOSTNAME}:${ETHSTATS_SECRET}@${ETHSTATS_SVC} --verbosity=4"
+        - "geth --bootnodes=`cat /root/.ethereum/bootnodes` --mine --networkid=${NETWORK_ID} --ethstats=${HOSTNAME}:${ETHSTATS_SECRET}@${ETHSTATS_SVC} --verbosity=4"
         env:
         - name: ETHSTATS_SVC
           value: eth-ethstats.dcp
