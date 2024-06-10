@@ -6,14 +6,17 @@ metadata:
 spec:
   selector:
     app: eth-bootnode
-  type: ClusterIP
-  ClusterIP: None
+  clusterIP: None
   ports:
   - name: discovery
     protocol: UDP
     port: 30301
+    #targetPort: 30301
   - name: http
+    protocol: TCP
     port: 8080
+    #targetPort: 8080
+
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -80,7 +83,7 @@ spec:
         - name: http
           containerPort: 8080
       initContainers:
-      - name: Generate key
+      - name: generate-key
         image: ethereum/client-go:alltools-v1.11.6
         imagePullPolicy: IfNotPresent
         command: ["/bin/sh"]
