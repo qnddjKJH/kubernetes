@@ -103,9 +103,10 @@ spec:
       - name: init-genesis
         image: ethereum/client-go:alltools-v1.11.6
         imagePullPolicy: IfNotPresent
+        command: ["/bin/sh"]
         args:
-        - "init"
-        - "/var/geth/genesis.json"
+        - "-c"
+        - "geth init /var/geth/genesis.json"
         volumeMounts:
         - name: data
           mountPath: /root/.ethereum
