@@ -18,14 +18,11 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: eth-ethstats
-  namespace: eth-ethstats
-  annotations:
-    nginx.ingress.kubernetes.io/auth-type: basic
-    nginx.ingress.kubernetes.io/auth-secret: imti-basic-auth
-    nginx.ingress.kubernetes.io/auth-realm: "Authentication Required"
+  namespace: eth-project
 spec:
+  ingressClassName: nginx
   rules:
-  - host: eth.bitto.projetc
+  - host: eth.bitto.project
     http:
       paths:
       - path: /
@@ -52,7 +49,7 @@ spec:
   template:
     metadata:
       labels:
-        app: MYAPP
+        app: eth-ethstats
     spec:
       # initContainers:
       # Init containers are exactly like regular containers, except:
@@ -60,7 +57,7 @@ spec:
       # - Each init container must complete successfully before the next one starts.
       containers:
       - name: eth-ethstats
-        image: ethereumex/eth-netstats:latest
+        image: ethereumex/eth-stats-dashboard:latest
         imagePullPolicy: IfNotPresent
         env:
         - name: WS_SECRET
@@ -68,6 +65,9 @@ spec:
             secretKeyRef:
               name: eth-ethstats
               key: WS_SECRET
+        command: ["/bin/sh", "-c"]
+        args:
+        - WS_SECRET=$(WS_SECRET) npm start
         ports:
         - name: http
           containerPort: 3000
