@@ -79,10 +79,10 @@ spec:
         - "-c"
         - |
           ETHERBASE=$(geth account list | grep 'Account #0:' | awk '{print $3}' | tr -d '{}') &&
-          geth --bootnodes=`cat /root/.ethereum/bootnodes` --miner.etherbase '${ETHERBASE}' --mine --networkid=${NETWORK_ID} --ethstats=${HOSTNAME}:${ETHSTATS_SECRET}@${ETHSTATS_SVC} --verbosity=4
+          geth --bootnodes=`cat /root/.ethereum/bootnodes` --miner.etherbase ${ETHERBASE} --mine --networkid=${NETWORK_ID} --ethstats=${HOSTNAME}:${ETHSTATS_SECRET}@${ETHSTATS_SVC} --verbosity=4 --nat extip:${POD_IP}
         env:
         - name: ETHSTATS_SVC
-          value: eth-ethstats.dcp
+          value: eth-ethstats.eth-project.svc.cluster.local
         - name: ETHSTATS_SECRET
           valueFrom:
             secretKeyRef:
@@ -93,6 +93,10 @@ spec:
             configMapKeyRef:
               name: eth-geth
               key: networkid
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
         ports:
         - name: discovery-udp
           containerPort: 30303
