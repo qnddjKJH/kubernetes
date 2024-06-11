@@ -1,88 +1,56 @@
 apiVersion: v1
-kind: ConfigMap
+kind: Service
 metadata:
-  name: eth-geth
+  name: eth-geth-tx
   namespace: eth-project
   labels:
-    app: eth-geth
-data:
-  networkid: "9596240610"
-  genesis.json: |
-    {
-      "config": {
-        "chainId": 9596240610,
-        "homesteadBlock": 0,
-        "eip150Block": 0,
-        "eip155Block": 0,
-        "eip158Block": 0
-      },
-      "difficulty": "0x400",
-      "gasLimit": "2000000",
-      "nonce": "0x0000000000000000",
-      "alloc": {
-        "0x0E2Ac28B62681076cB2bc36cb891be3447798113": {
-          "balance": "100000000000000000000"
-        },
-        "0x77c8c4Dce82a7B004B5f532c166ccC5945c61e6F": {
-          "balance": "200000000000000000000"
-        },
-        "0x6530C6B52f42306966A7a91952c6A84a2bEE737D": {
-          "balance": "300000000000000000000"
-        }
-      }
-    }
----
+    app: eth-geth-tx
+spec:
+  selector:
+    app: eth-geth-tx
+  type: ClusterIP
+  ports:
+  - name: rpc
+    port: 8545
+  - name: ws
+    port: 8546
 
-apiVersion: v1
-kind: Secret
-metadata:
-  name: eth-geth-miner
-  namespace: eth-project
-  labels:
-    app: eth-geth-miner
-type: Opaque
-data:
-  accountsecret: "Yml0dG9Qcm9qZWN0"
 ---
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: eth-geth-miner
+  name: eth-geth-tx
   namespace: eth-project
   labels:
-    app: eth-geth-miner
+    app: eth-geth-tx
 spec:
+  replicas: 2
   selector:
     matchLabels:
-      app: eth-geth-miner
-  replicas: 3
-  revisionHistoryLimit: 1
+      app: eth-geth-tx
   template:
     metadata:
       labels:
-        app: eth-geth-miner
+        app: eth-geth-tx
     spec:
       containers:
-      - name: geth-miner
+      - name: geth-tx
         image: ethereum/client-go:alltools-v1.11.6
         imagePullPolicy: IfNotPresent
         resources:
           requests:
-            cpu: ".5"
+            cpu: ".25"
             memory: 250Mi
           limits:
-            cpu: "1"
-            memory: 1G
+            cpu: ".5"
+            memory: 750Mi
         command: ["/bin/sh"]
         args:
         - "-c"
-        - |
-          ETHERBASE=$(geth account list | grep 'Account #0:' | awk '{print $3}' | tr -d '{}') &&
-          geth --bootnodes=`cat /root/.ethereum/bootnodes` --miner.etherbase ${ETHERBASE} --mine --networkid=${NETWORK_ID} --ethstats=${HOSTNAME}:${ETHSTATS_SECRET}@${ETHSTATS_SVC} --verbosity=5 --nat extip:${POD_IP}
+        - "geth --bootnodes=`cat /root/.ethereum/bootnodes` --rpc --rpcapi=eth,net,web3 --rpccorsdomain='*' --ws --networkid=${NETWORK_ID} --ethstats=${HOSTNAME}:${ETHSTATS_SECRET}@${ETHSTATS_SVC} --verbosity=5 --nat extip:${POD_IP}"
         env:
         - name: ETHSTATS_SVC
-          value: eth-ethstats.eth-project.svc.cluster.local
+          value: eth-ethstats.dcp
         - name: ETHSTATS_SECRET
           valueFrom:
             secretKeyRef:
@@ -98,6 +66,10 @@ spec:
             fieldRef:
               fieldPath: status.podIP
         ports:
+        - name: rpc
+          containerPort: 8545
+        - name: ws
+          containerPort: 8546
         - name: discovery-udp
           containerPort: 30303
           protocol: UDP
@@ -110,31 +82,14 @@ spec:
       - name: init-genesis
         image: ethereum/client-go:alltools-v1.11.6
         imagePullPolicy: IfNotPresent
-        command: ["/bin/sh"]
         args:
-        - "-c"
-        - "geth init /var/geth/genesis.json"
+        - "init"
+        - "/var/geth/genesis.json"
         volumeMounts:
         - name: data
           mountPath: /root/.ethereum
         - name: config
           mountPath: /var/geth
-      - name: create-account
-        image: ethereum/client-go:alltools-v1.11.6
-        imagePullPolicy: IfNotPresent
-        command: ["/bin/sh"]
-        args:
-        - "-c"
-        - "printf '$(ACCOUNT_SECRET)\n$(ACCOUNT_SECRET)\n' | geth account new"
-        env:
-        - name: ACCOUNT_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: eth-geth-miner
-              key: accountsecret
-        volumeMounts:
-        - name: data
-          mountPath: /root/.ethereum
       - name: get-bootnodes
         image: ethereum/client-go:alltools-v1.11.6
         imagePullPolicy: IfNotPresent
