@@ -61,12 +61,21 @@ spec:
         - name: data
           mountPath: /etc/bootnode
         ports:
-        - name: discovery
+        - name: discovery-udp
           containerPort: 30301
           protocol: UDP
+        - name: discovery-tcp
+          containerPort: 30301
+          protocol: TCP
       - name: bootnode-server
         image: ethereum/client-go:alltools-v1.11.6
         imagePullPolicy: IfNotPresent
+        resources:
+          requests:
+            cpu: "0.25"
+          limits:
+            cpu: ".5"
+            memory: 100M
         command: ["/bin/sh"]
         args:
         - "-c"
