@@ -32,7 +32,7 @@ spec:
   selector:
     matchLabels:
       app: eth-bootnode
-  replicas: 2
+  replicas: 1
   strategy:
     rollingUpdate:
       maxSurge: 25%
@@ -56,10 +56,15 @@ spec:
         command: ["/bin/sh"]
         args:
         - "-c"
-        - "bootnode -nodekey /etc/bootnode/node.key -verbosity 4"
+        - "bootnode -nodekey /etc/bootnode/node.key -addr $POD_IP:30301 -verbosity 4"
         volumeMounts:
         - name: data
           mountPath: /etc/bootnode
+        env:
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
         ports:
         - name: discovery-udp
           containerPort: 30301

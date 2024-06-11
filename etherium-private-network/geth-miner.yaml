@@ -73,7 +73,7 @@ spec:
             memory: 250Mi
           limits:
             cpu: "1"
-            memory: 500Mi
+            memory: 1G
         command: ["/bin/sh"]
         args:
         - "-c"
