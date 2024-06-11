@@ -8,10 +8,13 @@ spec:
     app: eth-bootnode
   clusterIP: None
   ports:
-  - name: discovery
+  - name: discovery-udp
     protocol: UDP
     port: 30301
     #targetPort: 30301
+  - name: discovery-tcp
+    protocol: TCP
+    port: 30301
   - name: http
     protocol: TCP
     port: 8080
